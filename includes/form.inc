@@ -4649,6 +4649,10 @@ function batch_process($redirect = NULL, $url = 'batch', $redirect_callback = 'd
     );
     $batch += $process_info;
 
+    if (defined("APS_UPGRADE") && APS_UPGRADE == 'On') {
+      $batch['progressive'] = FALSE;
+    }
+
     // The batch is now completely built. Allow other modules to make changes
     // to the batch so that it is easier to reuse batch processes in other
     // environments.

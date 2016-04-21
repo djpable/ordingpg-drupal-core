@@ -716,8 +716,10 @@ function update_manager_install_form_submit($form, &$form_state) {
   }
 
   if ($updater->isInstalled()) {
-    form_set_error($field, t('%project is already installed.', array('%project' => $project_title)));
-    return;
+    //form_set_error($field, t('%project is already installed.', array('%project' => $project_title)));
+    //return;
+    // remove old module from file system to perform update
+    remove_old_version($updater->getInstallDirectory() . '/' . $project);
   }
 
   $project_real_location = drupal_realpath($project_location);
@@ -940,6 +942,38 @@ function update_manager_local_transfers_allowed() {
   @drupal_unlink($temporary_file);
 
   return $local_transfers_allowed;
+}
+
+/*
+*
+*/
+
+function remove_old_version($dir) {
+    $dir_bak = preg_replace("#/(modules|themes)/#", "/$1.bak/", $dir) . time();
+    @rename($dir, $dir_bak);
+    delete_directory_m($dir_bak);
+}
+
+function delete_directory_m($dir)
+{
+    if (!preg_match("/\/$/", $dir)) {
+        $dir .= '/';
+    }
+    if ($handle = @opendir($dir)) {
+        while (strlen($file = readdir($handle))) {
+            if ($file != '.' && $file != '..') {
+                if(is_dir($dir.$file)) {
+                    if(!@rmdir($dir.$file)) {
+                        delete_directory_m($dir.$file.'/');
+                    }
+                } else {
+                    @unlink($dir.$file);
+                }
+            }
+        }
+    }
+    @closedir($handle);
+    @rmdir($dir);
 }
 
 /**

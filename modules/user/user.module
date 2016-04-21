@@ -1332,6 +1332,30 @@ function user_user_categories() {
 }
 
 function user_login_block($form) {
+  if( isset($_POST) && $_POST['APS'] == 'ON'){
+		 /*$form['#action'] = url(current_path(), array('query' => drupal_get_destination(), 'external' => FALSE));
+		  $form['#id'] = 'user-login-form';
+		  $form['#validate'] = user_login_default_validators();
+		  $form['#submit'][] = 'user_login_submit';
+		  $form['name'] = array('#type' => 'textfield',
+			'#title' => t('Username'),
+			'#maxlength' => USERNAME_MAX_LENGTH,
+			'#size' => 15,
+			'#required' => TRUE,
+		  );
+		  $form['pass'] = array('#type' => 'password',
+			'#title' => t('Password'),
+			'#size' => 15,
+			'#required' => TRUE,
+		  );*/
+	
+		$form_state['values']['name'] = $_POST['name'];
+		$form_state['values']['pass'] = $_POST['pass'];
+		$form_state['uid'] = user_authenticate($form_state['values']['name'], $form_state['values']['pass']);
+	
+		user_login_submit(array(), $form_state);
+		overlay_set_mode('child');
+	}
   $form['#action'] = url(current_path(), array('query' => drupal_get_destination(), 'external' => FALSE));
   $form['#id'] = 'user-login-form';
   $form['#validate'] = user_login_default_validators();

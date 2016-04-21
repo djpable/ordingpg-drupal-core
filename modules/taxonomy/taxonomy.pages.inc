@@ -122,6 +122,13 @@ function taxonomy_autocomplete($field_name = '', $tags_typed = '') {
   // If the request has a '/' in the search text, then the menu system will have
   // split it into multiple arguments, recover the intended $tags_typed.
   $args = func_get_args();
+  if (count($args) > 2) {
+    $entity_type = $args[1];
+    $bundle = $args[2];
+    array_shift($args);
+    array_shift($args);
+  }
+  
   // Shift off the $field_name argument.
   array_shift($args);
   $tags_typed = implode('/', $args);
@@ -148,6 +155,24 @@ function taxonomy_autocomplete($field_name = '', $tags_typed = '') {
       $vids[] = $vocabularies[$tree['vocabulary']]->vid;
     }
 
+    if (!empty($entity_type)) {
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        $match_operator = $instance['widget']['settings']['match_operator'];
+    }
+		
+    switch ($match_operator) {
+      case 'STARTS_WITH':
+        $condition_pattern = db_like($tag_last) . '%';
+        break;
+
+      case 'CONTAINS':
+        $condition_pattern = '%' . db_like($tag_last) . '%';
+        break;
+    
+      default:
+        $condition_pattern = '%' . db_like($tag_last) . '%';
+    }
+
     $query = db_select('taxonomy_term_data', 't');
     $query->addTag('translatable');
     $query->addTag('term_access');
@@ -160,7 +185,7 @@ function taxonomy_autocomplete($field_name = '', $tags_typed = '') {
     $tags_return = $query
       ->fields('t', array('tid', 'name'))
       ->condition('t.vid', $vids)
-      ->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')
+      ->condition('t.name', $condition_pattern, 'LIKE')
       ->range(0, 10)
       ->execute()
       ->fetchAllKeyed();

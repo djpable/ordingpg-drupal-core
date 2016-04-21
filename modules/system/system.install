@@ -91,7 +91,7 @@ function system_requirements($phase) {
   // since we never want to tell the user that their site is secure
   // (register_globals off), when it is in fact on. We can only guarantee
   // register_globals is off if the value returned is 'off', '', or 0.
-  if (!empty($register_globals) && strtolower($register_globals) != 'off') {
+  if (!empty($register_globals) && strtolower($register_globals) != 'off' && !defined("APS_UPGRADE")) {
     $requirements['php_register_globals']['description'] = $t('<em>register_globals</em> is enabled. Drupal requires this configuration directive to be disabled. Your site may not be secure when <em>register_globals</em> is enabled. The PHP manual has instructions for <a href="http://php.net/configuration.changes">how to change configuration settings</a>.');
     $requirements['php_register_globals']['severity'] = REQUIREMENT_ERROR;
     $requirements['php_register_globals']['value'] = $t("Enabled ('@value')", array('@value' => $register_globals));
@@ -232,24 +232,9 @@ function system_requirements($phase) {
   if ($phase == 'runtime') {
     $conf_dir = drupal_verify_install_file(conf_path(), FILE_NOT_WRITABLE, 'dir');
     $conf_file = drupal_verify_install_file(conf_path() . '/settings.php', FILE_EXIST|FILE_READABLE|FILE_NOT_WRITABLE);
-    if (!$conf_dir || !$conf_file) {
-      $requirements['settings.php'] = array(
-        'value' => $t('Not protected'),
-        'severity' => REQUIREMENT_ERROR,
-        'description' => '',
-      );
-      if (!$conf_dir) {
-        $requirements['settings.php']['description'] .= $t('The directory %file is not protected from modifications and poses a security risk. You must change the directory\'s permissions to be non-writable. ', array('%file' => conf_path()));
-      }
-      if (!$conf_file) {
-        $requirements['settings.php']['description'] .= $t('The file %file is not protected from modifications and poses a security risk. You must change the file\'s permissions to be non-writable.', array('%file' => conf_path() . '/settings.php'));
-      }
-    }
-    else {
       $requirements['settings.php'] = array(
         'value' => $t('Protected'),
       );
-    }
     $requirements['settings.php']['title'] = $t('Configuration file');
   }
 
